@@ -11,15 +11,17 @@ This method is particularly efficient because it does not require any type of co
 
 The following code is also useful to get an ArrayBuffer from a Base64 string and/or viceversa
 
+JavaScript's UTF-16 => UTF-8 => base64
+--------------------------------------
 Setting UTF8 to true converts JavaScript's native UTF-16 string into a UTF-8 string and then encoding the latter into base64.
 This also grants that converting a pure ASCII string to base64 always produces the same output as the native btoa().
 
-
-
-Setting UTF8 to true is the fastest and most compact possible approach. 
+JavaScript's UTF-16 => binary string => base64
+----------------------------------------------
+atobUTF16/btoaUTF16 is the fastest and most compact possible approach. 
 Then, instead of rewriting atob() and btoa() it uses the native ones.
 This is made possible by the fact that instead of using typed arrays as encoding/decoding inputs
-this uses binary strings as an intermediate format. It is a “dirty” workaround in comparison to the default ( UTF8 = false)
+this uses binary strings as an intermediate format. It is a “dirty” workaround in comparison to the default use
 as binary strings are a grey area, however it works pretty well and requires only a few extra lines of code.
  */
 
