@@ -2,27 +2,35 @@
 /**
  * The "Unicode Problem"
 Since DOMStrings are 16-bit-encoded strings, in most browsers calling window.btoa on a
-Unicode string will cause a Character Out Of Range exception if a character exceeds the range of a 8-bit byte (0x00~0xFF).
+Unicode string will cause a Character Out Of Range exception if a character exceeds the 
+range of a 8-bit byte (0x00~0xFF).
 
 JavaScript's UTF-16 => base64
 -----------------------------
-A very fast and widely useable way to solve the unicode problem is by encoding JavaScript native UTF-16 strings directly into base64.
-This method is particularly efficient because it does not require any type of conversion, except mapping a string into an array. 
+A very fast and widely useable way to solve the unicode problem is by encoding
+JavaScript native UTF-16 strings directly into base64.  This method is particularly
+efficient because it does not require any type of conversion, except mapping a 
+string into an array. 
 
-The following code is also useful to get an ArrayBuffer from a Base64 string and/or viceversa
+The following code is also useful to get an ArrayBuffer from a Base64 string 
+and/or viceversa
 
 JavaScript's UTF-16 => UTF-8 => base64
 --------------------------------------
-Setting UTF8 to true converts JavaScript's native UTF-16 string into a UTF-8 string and then encoding the latter into base64.
-This also grants that converting a pure ASCII string to base64 always produces the same output as the native btoa().
+Setting UTF8 to true converts JavaScript's native UTF-16 string into a UTF-8 
+string and then encoding the latter into base64.  This also grants that 
+converting a pure ASCII string to base64 always produces the same output as 
+the native btoa().
 
 JavaScript's UTF-16 => binary string => base64
 ----------------------------------------------
 atobUTF16/btoaUTF16 is the fastest and most compact possible approach. 
 Then, instead of rewriting atob() and btoa() it uses the native ones.
-This is made possible by the fact that instead of using typed arrays as encoding/decoding inputs
-this uses binary strings as an intermediate format. It is a “dirty” workaround in comparison to the default use
-as binary strings are a grey area, however it works pretty well and requires only a few extra lines of code.
+This is made possible by the fact that instead of using typed arrays as 
+encoding/decoding inputs this uses binary strings as an intermediate format. 
+It is a “dirty” workaround in comparison to the default use as binary 
+strings are a grey area, however it works pretty well and requires only 
+a few extra lines of code.
  */
 
 "use strict";
@@ -100,7 +108,8 @@ class EncodeDecode {
       */
       nUint24 |= aBytes[nIdx] << (16 >>> nMod3 & 24);
       if (nMod3 === 2 || aBytes.length - nIdx === 1) {
-        sB64Enc += String.fromCharCode(uint6ToB64(nUint24 >>> 18 & 63), uint6ToB64(nUint24 >>> 12 & 63), uint6ToB64(nUint24 >>> 6 & 63), uint6ToB64(nUint24 & 63));
+        sB64Enc += String.fromCharCode(uint6ToB64(nUint24 >>> 18 & 63), uint6ToB64(nUint24 >>> 12 & 63), 
+        uint6ToB64(nUint24 >>> 6 & 63), uint6ToB64(nUint24 & 63));
         nUint24 = 0;
       }
       this.encodedString = eqLen === 0 ?
@@ -120,7 +129,8 @@ class EncodeDecode {
     }
     let aUTF16CodeUnits = new Uint16Array(this.stringToEncode.length);
     const self = this;
-    Array.prototype.forEach.call(aUTF16CodeUnits, function (el, idx, arr) { arr[idx] = self.stringToEncode.charCodeAt(idx); });
+    Array.prototype.forEach.call(aUTF16CodeUnits, 
+      function (el, idx, arr) { arr[idx] = self.stringToEncode.charCodeAt(idx); });
     this.base64EncArr(new Uint8Array(aUTF16CodeUnits.buffer));
   }
 
@@ -136,7 +146,9 @@ class EncodeDecode {
   base64DecToArr(nBlockSize) {
     let
       sB64Enc = this.encodedString.replace(/[^A-Za-z0-9\+\/]/g, ""), nInLen = sB64Enc.length,
-      nOutLen = nBlockSize ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockSize) * nBlockSize : nInLen * 3 + 1 >>> 2, aBytes = new Uint8Array(nOutLen);
+      nOutLen = nBlockSize ? 
+        Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockSize) * nBlockSize : 
+        nInLen * 3 + 1 >>> 2, aBytes = new Uint8Array(nOutLen);
 
     for (let nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
       nMod4 = nInIdx & 3;
@@ -163,11 +175,15 @@ class EncodeDecode {
       sView += String.fromCharCode(
         nPart > 251 && nPart < 254 && nIdx + 5 < nLen ? /* six bytes */
           /* (nPart - 252 << 30) may be not so safe in ECMAScript! So...: */
-          (nPart - 252) * 1073741824 + (aBytes[++nIdx] - 128 << 24) + (aBytes[++nIdx] - 128 << 18) + (aBytes[++nIdx] - 128 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
+          (nPart - 252) * 1073741824 + (aBytes[++nIdx] - 128 << 24) +
+          (aBytes[++nIdx] - 128 << 18) + (aBytes[++nIdx] - 128 << 12) + 
+          (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
           : nPart > 247 && nPart < 252 && nIdx + 4 < nLen ? /* five bytes */
-            (nPart - 248 << 24) + (aBytes[++nIdx] - 128 << 18) + (aBytes[++nIdx] - 128 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
+            (nPart - 248 << 24) + (aBytes[++nIdx] - 128 << 18) + 
+            (aBytes[++nIdx] - 128 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
             : nPart > 239 && nPart < 248 && nIdx + 3 < nLen ? /* four bytes */
-              (nPart - 240 << 18) + (aBytes[++nIdx] - 128 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
+              (nPart - 240 << 18) + (aBytes[++nIdx] - 128 << 12) +
+              (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
               : nPart > 223 && nPart < 240 && nIdx + 2 < nLen ? /* three bytes */
                 (nPart - 224 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
                 : nPart > 191 && nPart < 224 && nIdx + 1 < nLen ? /* two bytes */
@@ -187,7 +203,8 @@ class EncodeDecode {
 
     for (let nMapIdx = 0; nMapIdx < nStrLen; nMapIdx++) {
       nChr = sDOMStr.charCodeAt(nMapIdx);
-      nArrLen += nChr < 0x80 ? 1 : nChr < 0x800 ? 2 : nChr < 0x10000 ? 3 : nChr < 0x200000 ? 4 : nChr < 0x4000000 ? 5 : 6;
+      nArrLen += nChr < 0x80 ? 1 : nChr < 0x800 ? 2 : nChr < 0x10000 ? 3 :
+        nChr < 0x200000 ? 4 : nChr < 0x4000000 ? 5 : 6;
     }
 
     aBytes = new Uint8Array(nArrLen);
@@ -241,7 +258,8 @@ class EncodeDecode {
     }
     let aUTF16CodeUnits = new Uint16Array(this.stringToEncode.length);
     const self = this;
-    Array.prototype.forEach.call(aUTF16CodeUnits, function (el, idx, arr) { arr[idx] = self.stringToEncode.charCodeAt(idx); });
+    Array.prototype.forEach.call(aUTF16CodeUnits, 
+      function (el, idx, arr) { arr[idx] = self.stringToEncode.charCodeAt(idx); });
     this.encodedString = window.btoa(String.fromCharCode.apply(null, new Uint8Array(aUTF16CodeUnits.buffer)));
   }
 
